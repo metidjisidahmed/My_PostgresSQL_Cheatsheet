@@ -1,0 +1,163 @@
+SELECT * from film;
+show all the columns in the Films table
+
+SELECT c1,c2 from film;
+show only the columns c1 and c2 from the Films table;
+
+TO SEE ALL THE TABLES I HAVE IN MY DAtABASE AND THE ROWS OF EACH TABLE :
+from PgAdmin : Daatabases->dvdrental->Schemas->Tables
+
+CHALLENGE SELECT  : GET THE FIRST AND LAST NAME AND THE EMAIL OF THE CUSTOMERS
+SELECT  email ,first_name , last_name from customer;
+
+SELECT DISTINCT(release_year) from film;
+to know which release years exists in our table ( in this tablle , we will only get '2006' means that all the film we have there : they are released in 2006 )
+
+CHALLENGE SELECT DISTINCT : know all the available film ratings 
+SELECT DISTINCT rating  FROM film
+
+SELECT COUNT( DISTINCT rating ) from film;
+To know how many types of film's rating there are ;
+
+SELECT COUNT(*) FROM film WHERE rental_rate>4 AND rating='R'
+To know how many films we have that have renatl rate > 4 and their rating is 'R"
+
+CHALLENGE WHERE 1: a customer forgot his wallet , his Name is 'Nancy Tromas' , we need to know his email so we can contact him
+SELECT first_name , last_name , email FROM customer 
+WHERE first_name='Nancy' AND last_name='Thomas';
+
+CHALLENGE WHERE 2 : a customer wants to know the description of the movie 'Outlaw Hanky'
+SELECT title , description  FROM film
+WHERE title='Outlaw Hanky'
+
+CHALLENGE WHERE 3 : get the customer's phone number who lives at '259 Ipoh Drive'
+SELECT address , phone FROM address
+WHERE address='259 Ipoh Drive'
+
+SELECT title , description, rental_rate from film
+WHERE rating='R' AND rental_rate> 3
+ORDER BY title ASC ( or DESC);
+to know the films which answers our criteria , ordered by the title ASC/DESC
+
+SELECT title , description, rental_rate from film
+WHERE rating='R' AND rental_rate> 3
+ORDER BY rental_rate DESC , title ASC ;
+to know the films which answers our criteria , ordered by the rental_rate and for the films which has rental_rate , they will be ordered by their title
+
+SELECT * from payment
+ORDER BY payment_date DESC
+LIMIT 3;
+to know the most 3 recent payments 
+
+CHALLENGE ORDER BY : get the first 10 customers ids who did the payments
+SELECT DISTINCT(customer_id) , payment_date from payment
+ORDER BY payment_date ASC
+LIMIT 10;
+
+CHALLENGE ORDER BY 2 : get the 5 shortest movies's titles
+SELECT title ,length from film
+ORDER BY length ASC 
+LIMIT 5
+
+CHALLENGE ORDER BY 3 : We wanna know how many movies that has 50 minutes or less
+SELECT COUNT(title) from film
+WHERE length<=50
+
+SELECT * from payment
+WHERE payment_date BETWEEN '2007-02-10' and '2007-02-15'
+get all the payments that happened between 10/02/2007 00:00:00 and 15/02/2007 00:00:00
+
+SELECT * from payment
+WHERE amount in (1.99 , 2.99 , 5.99)
+ORDER BY amount
+get all the payments which their amount are 1.99 or 2.99 or 5.99
+
+SELECT * from customer
+WHERE first_name ILIKE 'a%' and last_name LIKE '_a%'
+to get all the customers whose first name start with 'a' or 'A' ( ILIKE ) and their last name must have 'a' as a second letter
+
+GENERAL CHALLENGES 1 : how many payment that has amount greater than 5$
+SELECT COUNT(*) from payment
+WHERE amount > 5 
+
+GENERAL CHALLENGES 2 : How many actors have a first name that start with a 'P':
+SELECT COUNT(*) from actor
+WHERE first_name ILIKE 'p%'
+
+GENERAL CHALLENGES 3: how many unique districts our customers are from 
+SELECT COUNT(DISTINCT(district)) from address
+
+GENERAL CHALLENGES 4 : list of names of these unique districts 
+SELECT DISTINCT(district) from address
+
+GENERAL CHALLENGES 5 : how many films have a rating of R and remplacment cost between 5% and 15$
+SELECT title , replacement_cost from film
+WHERE rating='R' AND replacement_cost BETWEEN 5 AND 15
+
+GENERAL CHALLENGE 6 : how many films has the word 'Truman' in their title
+SELECT COUNT(title)  from film
+WHERE title ILIKE '%truman%'
+
+SELECT COUNT(*) , MIN(replacement_cost) , MAX(replacement_cost) , SUM(replacement_cost) , ROUND(AVG(replacement_cost) , 2)
+FROM film:
+to test  the  most important agregate functions
+ROUND( AVG , 2) means we will only take the first two degit in the float part
+PS : the agregate funtcion returns only one row
+
+SELECT customer_id , staff_id , SUM(amount) from payment
+GROUP BY customer_id , staff_id
+ORDER BY SUM(amount) DESC
+to know for each customer and for each stuff purchased by a customer : how many amount a specific customer spent on a specific stuff
+and the result is ordered by the sum of the amount per staff_id per customer_id
+PS IMPORTANT: the columns which doesn't in form of an aggregate functionn (customer_id and staff_id) are actegorical columns means they are ENUM type and they have to be in the GROUP BY  instruction.
+PS : we can group by more than one column ( like this example )
+
+SELECT DATE(payment_date) , SUM(amount ) from payment
+GROUP BY DATE(payment_date) 
+ORDER BY SUM(amount) DESC
+LIMIT 10;
+
+to know the amount spent for each day and order the result by the SUM(amount) means we will get 10 best days where the amount spent are higher 
+PS : DATE() a function which convert a date to 'YYYY-MM-DD' 
+DATE(payment_date) is teh categorized column and SUm(amount) is the agregate of each category
+
+CHALLENGE GROUP BY : between staff_id=1 and staff_id=2 , which one has more payment transactions
+SELECT staff_id , COUNT(*) from payment
+WHERE staff_id='1' OR staff_id='2'
+GROUP BY staff_id
+ORDER BY COUNT(*) DESC
+
+CHALLENGE GROUP BY 2 : get average remplacment_cost per rating ( R , G , PG ..etc)
+SELECT rating , ROUND(AVG(replacement_cost),2) from film
+GROUP BY rating
+ORDER BY ROUND(AVG(replacement_cost),2) DESC
+
+CHELLENGE GROUP BY 3 : top 5 customers which spent more for our films
+SELECT customer_id , SUM(amount) from payment
+GROUP BY customer_id
+ORDER BY SUM(amount) DESC
+LIMIT 5
+
+select customer_id , SUM(amount) from payment
+WHERE customer_id != 144
+GROUP BY customer_id 
+HAVING SUM(amount)>165
+ORDER BY SUM(amount) DESC
+show the amounts spent per customer_id for the customer_id different from 144 and who has an amount more than 165 
+
+PS : in the GROUP BY statements :
+WHERE is used to put the conditions in the categorical columns (ex :customer_id  )
+HAVING is used to put the conditions in the aggregate columns ( ex : SUM(amount) )
+
+CHELLNEGE HAVING : give the platinum service to the customers who has more than 40 transactions
+select customer_id , count(*) from payment
+GROUP BY customer_id
+HAVING count(*)>=40
+ORDER BY count(*) DESC
+
+CHALLENGE HAVING 2 : the customers who spent more than 100$ in the staff_id=2
+select customer_id , SUM(amount) from payment
+where staff_id=2
+GROUP BY customer_id
+HAVING SUM(amount) > 100
+ORDER BY SUM(amount) DESC
