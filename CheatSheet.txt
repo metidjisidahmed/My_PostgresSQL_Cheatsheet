@@ -161,3 +161,123 @@ where staff_id=2
 GROUP BY customer_id
 HAVING SUM(amount) > 100
 ORDER BY SUM(amount) DESC
+
+select customer_id , COUNt(*) AS num_transactions from payment
+GROUP BY customer_id
+HAVING COUNT(*) > 10
+
+rename the COUNT(*) column to 'num_transactions' using AS 
+PS : this name is assigned at the very end of the instructions so we cannot write 'HAVING num_transactions > 10'
+
+
+---------------------------- JOINS -------------------------------------------------
+1/INNER JOIN :
+select payment.customer_id , payment_id , first_name, last_name from
+payment INNER JOIN customer
+ON payment.customer_id = customer.customer_id
+
+Get the customers info with their payments indo ( the customers  who did at least one payment) 
+each row is  the UNION of the payment and customer tables based from the condition 'payment.customer_id = customer.customer_id';
+SO each row will have have payment_info with customer_info where the customer_id is the same 
+Visual Example : 
+   Registration 					LOGIN
+-----------------                 -------------  
+reg_id | name                     log_id | name 
+1      | Bacha                      1    | Aliousalah 
+2      | Metidji                    2    | Bacha 
+3      | Adjejdou                   3    |	Metidji
+
+INNER JOIN on registration.name = login.Name :
+	----------------------------------
+	reg_id | name     | log_id  |   name                 
+       1	    Bacha        2          Bacha
+       2       Metidji      3          Metidji
+       
+       
+       
+PS : in PostgresSQl : JOIN is INNER JOIN   
+
+
+2/ FULL OUTER JOIN :
+
+Visual Example :
+
+  Registration 					LOGIN
+-----------------                 -------------  
+reg_id | name                     log_id | name 
+1      | Bacha                      1    | Aliousalah 
+2      | Metidji                    2    | Bacha 
+3      | Adjejdou                   3    |	Metidji
+
+
+OUTER JOIN on registration.name=login.name
+	----------------------------------
+	reg_id | name     | log_id  |   name                 
+       1	    Bacha        2          Bacha
+       2       Metidji      3          Metidji
+       3       Adjedjou     NULL       NULL
+       NULL    NULL         1          ALIOUSALAH
+       
+The algorithm is pretty simple :
+1/ Grab everything from the first table  ( registration) ( first three lines )
+2/ trying to fill the other columns by the second table (login) ( first two lines )
+3/ Putting The rows that has a missing info from the second table are adding after ( third line )
+4/ Fianlly , we add The rows that has a missing info from the first table (fourth line )
+
+EXAMPLE : 
+We wanna get only the payments which is associated to an existant user  in our table customer
+
+SELECT * FROM
+payment FULL OUTER JOIN customer
+ON payment.customer_id=customer.customer_id
+where customer.customer_id IS NOT null 
+(if the customer.customer_id IS null means that the customer has a missing info from the table customer means that hedoesnt exist there )
+
+EXAMPLE 2 :
+We wanna get only the customers who did at least one payment 
+
+SELECT * FROM
+payment FULL OUTER JOIN customer
+ON payment.customer_id=customer.customer_id
+where payment.payment_id IS NOT null 
+( if the payment.payment_id is NULL means that the customer has a missing info from the table payment means thathe doesnt exist there )
+
+EXAMPLE 3 :
+We wanna get the customers who doesnt have any payment and the payments that are not associated to a existant user 
+
+SELECT * FROM
+payment FULL OUTER JOIN customer
+ON payment.customer_id=customer.customer_id
+where customer.customer_id IS null
+OR payment.payment_id IS null
+( if it exists a row where one of these id is missing then either the customer doesnt have a payment or a payment that is assocaited to no existant user )
+
+
+3/ LEFT IUTER JOIN :
+  Registration 					LOGIN
+-----------------                 -------------  
+reg_id | name                     log_id | name 
+1      | Bacha                      1    | Aliousalah 
+2      | Metidji                    2    | Bacha 
+3      | Adjejdou                   3    |	Metidji
+
+
+Registration LEFT OUTER JOIN LOGIN  on registration.name=login.name
+	----------------------------------
+	reg_id | name     | log_id  |   name                 
+       1	    Bacha        2          Bacha
+       2       Metidji      3          Metidji
+       3       Adjedjou     NULL       NULL
+
+LEFT OUTER JOIN will take all the rows from the left table and try to fill the other columns by the right table where there is match ( there isn't any row which exists exclusively in the right table )  and it will not add any row from the second table 
+
+EXAMPLE : 
+select film.film_id , title , inventory_id , store_id  from
+film LEFT OUTER JOIN inventory
+on film.film_id=inventory.film_id
+where inventory_id is NULL
+
+get all the films which doesnt exist in our inventories
+( here we will get all the films's columns are filled but the inventory's columns are only filled for the films which exists there     
+
+
